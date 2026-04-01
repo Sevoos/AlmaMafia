@@ -377,7 +377,7 @@ internal fun joinGame(
     )
     val msgId = showPlayerLobbyMenu(chatId, -1L, bot, id)
     accounts.update(chatId) {
-        menuMessageId = msgId
+        menuMessageId = msgId ?: -1
     }
 }
 
@@ -641,26 +641,19 @@ internal fun sendPlayerInfo(
                                                     roleDesc
                                                 )*/
             try {
-                val chat = ChatId.fromId(con.playerId)
+                val chatId = con.playerId
+                val chat = ChatId.fromId(chatId)
                 bot.sendMessage(
                     chat,
                     "Ведущий начал игру",
                     replyMarkup = mafiaKeyboard(chatId)
                 )
-                val res = bot.sendMessage(
-                    chat,
-                    getRoleDesc(role),
-                    parseMode = ParseMode.HTML,
-                )
-                if (res.isSuccess) {
-                    val msgId = res.get().messageId
-                    bot.editMessageReplyMarkup(
-                        chat,
-                        msgId,
-                        replyMarkup = inlineKeyboard {
-                            button(gameInfoCommand, role.id, msgId)
-                        }
-                    )
+                bot.sendMsg(
+                    chatId,
+                    getRoleDesc(role)
+                ).inlineKeyboard { msgId ->
+                    button(gameInfoCommand, role.id, msgId)
+                }.then { msgId ->
                     messageLinks.save(MessageLink(ObjectId(), game.id, chatId, msgId))
                 }
             } catch (e: Exception) {

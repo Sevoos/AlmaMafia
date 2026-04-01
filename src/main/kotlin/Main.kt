@@ -46,7 +46,7 @@ const val timerMaxTimeMin = 5L
 const val timerInactiveTimeMin = 2L
 const val roleNameLen = 32
 const val roleDescLen = 280
-const val defaultPageSize: Int = 1//0
+const val defaultPageSize: Int = 10
 const val statusScriptName = "[status]"
 val deleteForceLeadConfirmAfter: Duration = Duration.ofSeconds(10)
 val numbers = arrayOf("0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣")
@@ -447,55 +447,55 @@ fun showHostSettings(
     bot: Bot,
     chatId: Long,
     messageId: Long,
-    itemsOffset: Int
+    itemsOffset: Int = 0
 ) {
     showPaginatedMenu(
         chatId,
         messageId,
-        replyMarkup = inlineKeyboard {
-            button(blankCommand named "Список ведущих")
-            hostInfos.find().forEach {
-                accounts.get(it.chatId)?.let { acc ->
-                    row {
-                        button(blankCommand named ("👤 " + acc.fullName()))
-                    }
-                    row {
-                        button(blankCommand named "🎮 Лимит игр")
-                        if (it.gameLimit) {
-                            button(gameLimitOnCommand named it.left.toString(), it.chatId, messageId)
-                            button(gameLimitOffCommand, it.chatId, messageId)
-                        } else {
-                            button(gameLimitOnCommand, it.chatId, messageId)
-                        }
-                    }
-                    row {
-                        button(blankCommand named "⏰ Срок ведения")
-                        if (it.timeLimit) {
-                            button(timeLimitOnCommand named it.until.toString(), it.chatId, messageId)
-                            button(timeLimitOffCommand, it.chatId, messageId)
-                        } else {
-                            button(timeLimitOnCommand, it.chatId, messageId)
-                        }
-                    }
-                    row {
-                        button(blankCommand named "👥 Передавать ведение")
-                        button(shareCommand named if (it.canShare) "✅" else "❌", it.chatId, messageId)
-                    }
-                    row {
-                        button(blankCommand named "👇 Выбирать роли")
-                        button(canReassignCommand named if (it.canReassign) "✅" else "❌", it.chatId, messageId)
-                    }
-                    row {
-                        button(blankCommand named "⚖️ Распределения игроков")
-                        button(distributionCommand named if (it.showDistribution) "✅" else "❌", it.chatId, messageId)
-                    }
-                    if (admins.get(it.chatId) == null) {
-                        button(promoteHostCommand, it.chatId, messageId)
-                    } else {
-                        button(blankCommand named "⚛️ Администратор")
-                    }
-                    button(deleteHostCommand, it.chatId, messageId)
+        bot,
+        "Список ведущих",
+        hostInfos.find(),
+        { index, hostInfo ->
+            accounts.get(hostInfo.chatId)?.let { acc ->
+                row {
+                    button(blankCommand named ("👤 " + acc.fullName()))
                 }
+                row {
+                    button(blankCommand named "🎮 Лимит игр")
+                    if (hostInfo.gameLimit) {
+                        button(gameLimitOnCommand named hostInfo.left.toString(), hostInfo.chatId, messageId)
+                        button(gameLimitOffCommand, hostInfo.chatId, messageId)
+                    } else {
+                        button(gameLimitOnCommand, hostInfo.chatId, messageId)
+                    }
+                }
+                row {
+                    button(blankCommand named "⏰ Срок ведения")
+                    if (hostInfo.timeLimit) {
+                        button(timeLimitOnCommand named hostInfo.until.toString(), hostInfo.chatId, messageId)
+                        button(timeLimitOffCommand, hostInfo.chatId, messageId)
+                    } else {
+                        button(timeLimitOnCommand, hostInfo.chatId, messageId)
+                    }
+                }
+                row {
+                    button(blankCommand named "👥 Передавать ведение")
+                    button(shareCommand named if (hostInfo.canShare) "✅" else "❌", hostInfo.chatId, messageId)
+                }
+                row {
+                    button(blankCommand named "👇 Выбирать роли")
+                    button(canReassignCommand named if (hostInfo.canReassign) "✅" else "❌", hostInfo.chatId, messageId)
+                }
+                row {
+                    button(blankCommand named "⚖️ Распределения игроков")
+                    button(distributionCommand named if (hostInfo.showDistribution) "✅" else "❌", hostInfo.chatId, messageId)
+                }
+                if (admins.get(hostInfo.chatId) == null) {
+                    button(promoteHostCommand, hostInfo.chatId, messageId)
+                } else {
+                    button(blankCommand named "⚛️ Администратор")
+                }
+                button(deleteHostCommand, hostInfo.chatId, messageId)
             }
         },
         adminBackCommand,

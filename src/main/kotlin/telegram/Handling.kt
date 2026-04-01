@@ -456,7 +456,7 @@ object MafiaHandler {
                 )
                 if (res.isSuccess) {
                     val messageId = res.get().messageId
-                    showAdminMenu(chatId, messageId, bot)
+                    showAdminMenu(bot, chatId, messageId)
                 }
             }
             adPopups.get(chatId)?.let {
@@ -716,7 +716,7 @@ object MafiaHandler {
             }
             parametrized(updateCheckCommand) {
                 updateCheck(str(0))
-                showAdmin(bot, chatId, long(1))
+                showAdminMenu(bot, chatId, long(1))
             }
             parametrized(hostRequestCommand) {
                 showHostRequests(bot, chatId, long(0), int(1))
@@ -760,13 +760,13 @@ object MafiaHandler {
             parametrized(canReassignCommand) {
                 hostInfos.get(long(0))?.let {
                     hostInfos.update(long(0)) { canReassign = !it.canReassign }
-                    showHostSettings(long(1), chatId, bot)
+                    showHostSettings(bot, chatId, long(1))
                 }
             }
             parametrized(distributionCommand) {
                 hostInfos.get(long(0))?.let {
                     hostInfos.update(long(0)) { showDistribution = !it.showDistribution }
-                    showHostSettings(long(1), chatId, bot)
+                    showHostSettings(bot, chatId, long(1))
                 }
             }
             parametrized(deleteHostCommand) {
@@ -822,7 +822,7 @@ object MafiaHandler {
                 showChosenHostSettings(bot, chatId, long(0), long(1))
             }
             parametrized(adminBackCommand) {
-                showAdmin(bot, chatId, long(0))
+                showAdminMenu(bot, chatId, long(0))
                 accounts.update(chatId) {
                     state = AccountState.Menu
                 }

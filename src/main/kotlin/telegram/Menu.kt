@@ -72,51 +72,55 @@ internal fun showSettingsMenu(
     } else {
         messageId
     }
-
-    msgId?.let { msgId ->
-        bot.editMessageText(
-            ChatId.fromId(chatId),
-            msgId,
-            text = text,
-            replyMarkup = inlineKeyboard {
-                HostOptions.entries.forEach { entry ->
-                    row {
-                        button(settingDescCommand named entry.shortName, msgId, gameMessageId, entry.name)
-                        button(
-                            hostSettingCommand named (if (entry.current(settings)) "✅" else "❌"),
-                            msgId,
-                            gameMessageId,
-                            entry.name
-                        )
-                    }
-                }
-
-                if (HostOptions.AutoNight.current(settings)) {
-                    val setting = settings.autoNight
-                    row {
-                        button(autoSingLimDescCommand, msgId, gameMessageId)
-                        button(
-                            autoSingLimSelCommand named (setting?.actionSingleLimit?.toSeconds()?.pretty() ?: "Ошибка"),
-                            msgId,
-                            gameMessageId
-                        )
-                    }
-                    row {
-                        button(autoTeamLimDescCommand, msgId, gameMessageId)
-                        button(
-                            autoTeamLimSelCommand named (setting?.actionTeamLimit?.toSeconds()?.pretty() ?: "Ошибка"),
-                            msgId,
-                            gameMessageId
-                        )
-                    }
-                }
-                if (checks.get(CheckOption.SHOW_TOWN)) {
-                    button(shareGameCommand, msgId)
-                }
-                button(deleteMsgCommand named "Закрыть", msgId)
-            }
-        )
+    msgId?.let {
+        println(1)
     }
+
+    if (msgId == null) {
+        return
+    }
+    bot.editMessageText(
+        ChatId.fromId(chatId),
+        msgId,
+        text = text,
+        replyMarkup = inlineKeyboard {
+            HostOptions.entries.forEach { entry ->
+                row {
+                    button(settingDescCommand named entry.shortName, msgId, gameMessageId, entry.name)
+                    button(
+                        hostSettingCommand named (if (entry.current(settings)) "✅" else "❌"),
+                        msgId,
+                        gameMessageId,
+                        entry.name
+                    )
+                }
+            }
+
+            if (HostOptions.AutoNight.current(settings)) {
+                val setting = settings.autoNight
+                row {
+                    button(autoSingLimDescCommand, msgId, gameMessageId)
+                    button(
+                        autoSingLimSelCommand named (setting?.actionSingleLimit?.toSeconds()?.pretty() ?: "Ошибка"),
+                        msgId,
+                        gameMessageId
+                    )
+                }
+                row {
+                    button(autoTeamLimDescCommand, msgId, gameMessageId)
+                    button(
+                        autoTeamLimSelCommand named (setting?.actionTeamLimit?.toSeconds()?.pretty() ?: "Ошибка"),
+                        msgId,
+                        gameMessageId
+                    )
+                }
+            }
+            if (checks.get(CheckOption.SHOW_TOWN)) {
+                button(shareGameCommand, msgId)
+            }
+            button(deleteMsgCommand named "Закрыть", msgId)
+        }
+    )
 }
 
 internal fun showLobbyMenu(
@@ -392,6 +396,7 @@ internal fun showPlayerLobbyMenu(
     connectionId: ConnectionId,
     value: Int = 0
 ): Long? {
+    val chat = ChatId.fromId(chatId)
     val msgId = if (messageId == -1L) {
         bot.sendMessage(
             chat,
@@ -540,7 +545,7 @@ internal fun showAdminListMenu(
     bot: Bot,
     chatId: Long,
     messageId: Long,
-    itemsOffset: Int
+    itemsOffset: Int = 0
 ) {
     showPaginatedMenu(
         chatId,
@@ -795,6 +800,9 @@ internal fun showNightRoleMenu(
         bot.sendMsg(chatId, "Меню ночи:").msgId
     } else {
         messageId
+    }
+    if (msgId == null) {
+        return
     }
     nightHostMessages.save(NightHostMessage(chatId, msgId, town.gameId))
     val wake = if (town.night.size > town.index) town.night[town.index] else null
@@ -1067,6 +1075,9 @@ internal fun showDayMenu(
         } else {
             acc.menuMessageId
         }
+        if (msgId == null) {
+            return@withAccount
+        }
 
         val keyboard = inlineKeyboard {
             if (settings?.hideDayPlayers == true) {
@@ -1199,10 +1210,13 @@ internal fun showEndGameMenu(
 }
 
 fun showAdminMenu(
+    bot: Bot,
     chatId: Long,
-    messageId: Long,
-    bot: Bot
+    messageId: Long
 ) {
+    fun KeyboardContext.buttonToPaginatedMenu(command: Command) {
+        button(command, messageId, 0)
+    }
     bot.editMessageReplyMarkup(
         ChatId.fromId(chatId),
         messageId,
@@ -1217,11 +1231,11 @@ fun showAdminMenu(
                     )
                 }
             }
-            button(hostRequestCommand, messageId)
-            button(hostSettingsCommand, messageId)
-            button(adminSettingsCommand, messageId)
-            button(gamesSettingsCommand, messageId)
-            button(hostAdminSettingsCommand, messageId)
+            buttonToPaginatedMenu(hostRequestCommand)
+            buttonToPaginatedMenu(hostSettingsCommand)
+            buttonToPaginatedMenu(adminSettingsCommand)
+            buttonToPaginatedMenu(gamesSettingsCommand)
+            buttonToPaginatedMenu(hostAdminSettingsCommand)
             button(advertCommand)
             button(deleteMsgCommand, messageId)
         }
